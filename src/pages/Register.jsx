@@ -1,38 +1,123 @@
-import React, { useState, useEffect } from "react";
-import { TextField, Button, Box, Typography, Paper } from "@mui/material";
+import React, { useEffect, useState } from "react";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Link,
+  IconButton,
+  InputAdornment,
+  useTheme,
+} from "@mui/material";
+import {
+  Visibility,
+  VisibilityOff,
+} from "@mui/icons-material";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 import gsap from "gsap";
 
-const Register = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const Register = ({ setSnackbar }) => {
+  const theme = useTheme();
   const navigate = useNavigate();
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const togglePasswordVisibility = () =>
+    setShowPassword((prev) => !prev);
+
   useEffect(() => {
-    gsap.from(".register-form", { opacity: 0, y: 40, duration: 0.6 });
+    gsap.from(".register-form", {
+      y: 50,
+      opacity: 0,
+      duration: 0.7,
+      ease: "power3.out",
+    });
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       await createUserWithEmailAndPassword(auth, email, password);
+      setSnackbar({ open: true, message: "Registered successfully!" });
       navigate("/");
-    } catch (error) {
-      alert(error.message);
+    } catch (err) {
+      setSnackbar({ open: true, message: err.message });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" minHeight="90vh">
-      <Paper elevation={4} sx={{ padding: 4, maxWidth: 400 }} className="register-form">
-        <Typography variant="h5" gutterBottom>Register</Typography>
+    <Box
+      minHeight="100vh"
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      sx={{ backgroundColor: theme.palette.background.default }}
+    >
+      <Paper
+        elevation={4}
+        sx={{ padding: 4, maxWidth: 400, width: "90%" }}
+        className="register-form"
+      >
+        <Typography variant="h5" gutterBottom textAlign="center">
+          Register
+        </Typography>
         <form onSubmit={handleSubmit}>
-          <TextField fullWidth margin="normal" label="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <TextField fullWidth margin="normal" type="password" label="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          <Button fullWidth type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>Register</Button>
+          <TextField
+            fullWidth
+            type="email"
+            label="Email"
+            margin="normal"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <TextField
+            fullWidth
+            type={showPassword ? "text" : "password"}
+            label="Password"
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={togglePasswordVisibility} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Button
+            fullWidth
+            type="submit"
+            variant="contained"
+            color="primary"
+            sx={{ mt: 2 }}
+            disabled={loading}
+          >
+            {loading ? "Registering..." : "Register"}
+          </Button>
         </form>
+
+        <Box mt={2} textAlign="center">
+          <Typography variant="body2">
+            Already have an account?{" "}
+            <Link component={RouterLink} to="/login">
+              Login
+            </Link>
+          </Typography>
+        </Box>
       </Paper>
     </Box>
   );

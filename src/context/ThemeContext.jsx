@@ -6,6 +6,10 @@ export const ThemeContext = createContext();
 export const ThemeProvider = ({ children }) => {
   const [mode, setMode] = useState(() => localStorage.getItem("mode") || "light");
 
+  useEffect(() => {
+    document.body.setAttribute("data-theme", mode);  // For CSS selectors
+  }, [mode]);
+
   const toggleTheme = () => {
     setMode((prev) => {
       const next = prev === "light" ? "dark" : "light";
@@ -23,8 +27,8 @@ export const ThemeProvider = ({ children }) => {
             main: "#2563EB",
           },
           background: {
-            default: mode === "dark" ? "#111827" : "#ffffff",
-            paper: mode === "dark" ? "#1F2937" : "#f5f5f5",
+            default: mode === "dark" ? "#111827" : "#f5f5f5",
+            paper: mode === "dark" ? "#1F2937" : "#fff",
           },
         },
         typography: {
